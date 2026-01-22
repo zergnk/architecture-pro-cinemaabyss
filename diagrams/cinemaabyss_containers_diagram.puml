@@ -1,0 +1,71 @@
+@startuml
+title Container Diagram: Система "Умный дом"
+
+top to bottom direction
+
+!include <C4/C4_Container.puml>
+
+LAYOUT_WITH_LEGEND()
+
+Person(user, "Пользователь")
+
+System_Boundary(smart_house, "Система 'Кинобездна'") {
+    Container("api_gateway", "API Gateway", "")
+    ContainerDb(db, "PostgreSQL", "")
+    Container(recomendation_system_api, "API рекомендательной системы (адаптер)", "")
+    Container(streaming_api, "API для получения контента (адаптер)", "")
+
+    Boundary(domain_user_management, "Domain: Управление пользователями", "") {
+        Container("auth_service", "Сервис аутентификации и авторизации", "контекст: Аутентиффикация и авторизация")
+        Container("user_management_service", "Сервис управления пользователями", "контексты: Управление пользователями")
+    }
+
+    Boundary(domain_film_management, "Domain: Управление фильмами", "") {
+        Container("content_management_service", "Сервис управления контентом", "контекст: Управление контентом")
+        Container("metadata_management_service", "Сервис управления метаданными", "контексты: Управление метаданными")
+    }
+
+    Boundary(domain_payment_management, "Domain: Управление платежами", "") {
+        Container("payment_handling_service", "Обработка платежей", "контексты: Управление платежами")
+    }
+
+    Boundary(domain_film_management, "Domain: Управление фильмами", "") {
+        Container("metadata_management_service", "Сервис управления метаданными", "контексты: Управление метаданными")
+    }
+}
+
+System_Ext(s3, "S3")
+System_Ext(online_cinema, "Онлайн кинотеатры и стриминговые сервисы")
+System_Ext(payment_system, "Платежная система")
+Boundary(recomendation_system_boundary, "Внешняя рекомендательная система") {
+    System_Ext(recomendation_system, "Внешняя рекомендательная система")
+    SystemQueue_Ext(rabbit_mq, "RabbitMQ")
+
+    Rel(rabbit_mq, recomendation_system, "")
+}
+
+
+
+
+Rel(user, api_gateway, "[Rest API]")
+Rel(user, auth_service, "[http]")
+Rel(api_gateway, auth_service, "[http]")
+Rel(api_gateway, recomendation_system_api, "[http]")
+Rel(api_gateway, content_management_service, "[http]")
+Rel(api_gateway, metadata_management_service, "[http]")
+Rel(api_gateway, user_management_service, "[http]")
+Rel(api_gateway, payment_handling_service, "[http]")
+Rel(api_gateway, streaming_api, "[http]")
+
+Rel(content_management_service, db, "")
+Rel(metadata_management_service, db, "")
+Rel(user_management_service, db, "")
+Rel(payment_handling_service, db, "")
+
+Rel(recomendation_system_api, rabbit_mq, "")
+Rel(streaming_api, s3, "")
+Rel(streaming_api, online_cinema, "")
+Rel("payment_handling_service", payment_system, "")
+
+@enduml
+
