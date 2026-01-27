@@ -22,7 +22,6 @@ on:
 
 jobs:
   api-tests:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Run API Tests
     runs-on: ubuntu-latest
     
