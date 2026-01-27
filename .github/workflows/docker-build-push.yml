@@ -3,10 +3,13 @@ name: Docker Build and Push
 on:
   workflow_dispatch:
   push:
-    branches: [ main, cinema ]
+    branches: [ main, master ]
     paths:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'
+  workflow_run:
+    workflows: ["API Tests"]
+    types: [completed]
 
 env:
   REGISTRY: ghcr.io
@@ -17,6 +20,7 @@ env:
 
 jobs:
   build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

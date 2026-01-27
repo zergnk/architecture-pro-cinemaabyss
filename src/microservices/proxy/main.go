@@ -143,7 +143,7 @@ func getEvns() {
 			// todo:
 		}
 
-		val, exists = os.LookupEnv(envMoviesMigrationPercent)
+		val, exists = lookupEnv(envMoviesMigrationPercent)
 		if exists {
 			moviesMigrationPercent = parseInt(val)
 		} else {
