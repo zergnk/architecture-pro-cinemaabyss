@@ -27,7 +27,9 @@ var counter *BinaryCounter
 func main() {
 	getEvns()
 
-	counter = createBinaryCounter(moviesMigrationPercent, 100-moviesMigrationPercent)
+	if gradualMigration {
+		counter = createBinaryCounter(moviesMigrationPercent, 100-moviesMigrationPercent)
+	}
 
 	// Set up HTTP routes
 	http.HandleFunc("/health", handleHealth)
@@ -54,10 +56,14 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMovies(w http.ResponseWriter, r *http.Request) {
-	if counter.next() == 1 {
-		forwardRequest(w, r, moviesServiceUrl)
+	if gradualMigration {
+		if counter.next() == 1 {
+			forwardRequest(w, r, moviesServiceUrl)
+		} else {
+			forwardRequest(w, r, monolithUrl)
+		}
 	} else {
-		forwardRequest(w, r, monolithUrl)
+		forwardRequest(w, r, moviesServiceUrl)
 	}
 }
 
