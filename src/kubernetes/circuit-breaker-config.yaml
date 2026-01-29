@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: movies-service-circuit-breacker-destination-rule
+spec:
+  host: movies-service.cinemaabyss.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        idleTimeout: "30s"    # Таймаут ожидания ответа
+    outlierDetection:
+      baseEjectionTime: "10s" # Время исключения хоста из пула после ошибки
+      consecutiveErrors: 3    # Количество ошибок подряд для исключения хоста
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: monolith-circuit-breacker-destination-rule
+spec:
+  host: monolith.cinemaabyss.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        idleTimeout: "3s"    # Таймаут ожидания ответа
+    outlierDetection:
+      baseEjectionTime: "10s" # Время исключения хоста из пула после ошибки
+      consecutiveErrors: 3    # Количество ошибок подряд для исключения хоста
+ 
