@@ -2,6 +2,7 @@
 title Container Diagram: Система "Умный дом"
 
 top to bottom direction
+skinparam linetype ortho
 
 !include <C4/C4_Container.puml>
 
@@ -9,28 +10,46 @@ LAYOUT_WITH_LEGEND()
 
 Person(user, "Пользователь")
 
-System_Boundary(smart_house, "Система 'Кинобездна'") {
+System_Boundary(smart_house, "Система 'Кинобездна'", "", "", "Домен: Онлайн кинотеатр") {
     Container("api_gateway", "API Gateway", "")
-    ContainerDb(db, "PostgreSQL", "")
-    Container(recomendation_system_api, "API рекомендательной системы (адаптер)", "")
-    Container(streaming_api, "API для получения контента (адаптер)", "")
+    Container(recomendation_system_api, "API рекомендательной системы (адаптер)", "реализация: Go")
+    Container(streaming_api, "API для получения контента (адаптер)", "реализация: Go")
 
-    Boundary(domain_user_management, "Domain: Управление пользователями", "") {
-        Container("auth_service", "Сервис аутентификации и авторизации", "контекст: Аутентиффикация и авторизация")
-        Container("user_management_service", "Сервис управления пользователями", "контексты: Управление пользователями")
+    Boundary(domain_user_management, "Subdomain: Пользователи", "") {
+        Boundary(auth_service_boundary, "", "") {
+            Container("auth_service", "Сервис аутентификации и авторизации", "Context: Аутентиффикация и авторизация")
+            ContainerDb(auth_service_db, "PostgreSQL", "Данные об аккаунтах и правах пользователей")
+        }
+        Boundary(user_management_service_boundary, "", "") {
+            Container("user_management_service", "Сервис управления профилями пользователями", "реализация: Go, Context: Управление профилями пользователей")
+            ContainerDb(user_management_service_db, "PostgreSQL", "Данные о пользователях")
+        }
     }
 
-    Boundary(domain_film_management, "Domain: Управление фильмами", "") {
-        Container("content_management_service", "Сервис управления контентом", "контекст: Управление контентом")
-        Container("metadata_management_service", "Сервис управления метаданными", "контексты: Управление метаданными")
+    Boundary(domain_film_management, "Subdomain: Контент", "") {
+        Boundary(video_management_service_boundary, "", "") {
+            Container("video_management_service", "Сервис управления видео-файлами", "реализация: Go, Context: Управление видео-файлами")
+            ContainerDb(video_management_service_db, "PostgreSQL", "Данные о видеофайлах")
+        }
+        Boundary(metadata_management_service_boundary, "", "") {
+            Container("metadata_management_service", "Сервис управления метаданными", "реализация: Go, Context: Управление метаданными")
+            ContainerDb(metadata_management_service_db, "PostgreSQL", "Метаданные для видеофайлов")
+        }
     }
 
-    Boundary(domain_payment_management, "Domain: Управление платежами", "") {
-        Container("payment_handling_service", "Обработка платежей", "контексты: Управление платежами")
+    Boundary(domain_payment_management, "Subdomain: Платежи", "") {
+        Container("discount_calculation_service", "Сервис расчета скидок", "реализация: Go, Context: Рассчет скидок")
+        Boundary(payment_handling_service_boundary, "", "") {
+            Container("payment_handling_service", "Сервис обработки платежей", "реализация: Go, Context: Обработка платежей")
+            ContainerDb(payment_handling_service_db, "PostgreSQL", "Данные о платежах")
+        }
     }
 
-    Boundary(domain_film_management, "Domain: Управление фильмами", "") {
-        Container("metadata_management_service", "Сервис управления метаданными", "контексты: Управление метаданными")
+    Boundary(domain_subscription_management, "Subdomain: Подписки", "") {
+        Boundary(subscription_management_service_boundary, "", "") {
+            Container("subscription_management_service", "Сервис управления подписками", "реализация: Go, Context: Управление подписками")
+            ContainerDb(subscription_management_service_db, "PostgreSQL", "Данные о подписках")
+        }
     }
 }
 
@@ -38,34 +57,56 @@ System_Ext(s3, "S3")
 System_Ext(online_cinema, "Онлайн кинотеатры и стриминговые сервисы")
 System_Ext(payment_system, "Платежная система")
 Boundary(recomendation_system_boundary, "Внешняя рекомендательная система") {
-    System_Ext(recomendation_system, "Внешняя рекомендательная система")
+    System_Ext(recomendation_system, "Внешняя рекомендательная система", "")
     SystemQueue_Ext(rabbit_mq, "RabbitMQ")
 
     Rel(rabbit_mq, recomendation_system, "")
 }
 
 
+Rel(user_management_service, user_management_service_db, "")
+Rel(auth_service, auth_service_db, "")
+Rel(video_management_service, video_management_service_db, "")
+Rel(metadata_management_service, metadata_management_service_db, "")
+Rel(payment_handling_service, payment_handling_service_db, "")
+Rel(subscription_management_service, subscription_management_service_db, "")
+
+Rel(subscription_management_service, discount_calculation_service, "")
 
 
-Rel(user, api_gateway, "[Rest API]")
+Rel(user, api_gateway, "[http]")
 Rel(user, auth_service, "[http]")
 Rel(api_gateway, auth_service, "[http]")
 Rel(api_gateway, recomendation_system_api, "[http]")
-Rel(api_gateway, content_management_service, "[http]")
+Rel(api_gateway, video_management_service, "[http]")
 Rel(api_gateway, metadata_management_service, "[http]")
 Rel(api_gateway, user_management_service, "[http]")
 Rel(api_gateway, payment_handling_service, "[http]")
-Rel(api_gateway, streaming_api, "[http]")
-
-Rel(content_management_service, db, "")
-Rel(metadata_management_service, db, "")
-Rel(user_management_service, db, "")
-Rel(payment_handling_service, db, "")
+Rel(api_gateway, "subscription_management_service", "[http]")
+Rel(api_gateway, streaming_api, "[Протоколы стриммингового видео]")
 
 Rel(recomendation_system_api, rabbit_mq, "")
-Rel(streaming_api, s3, "")
-Rel(streaming_api, online_cinema, "")
-Rel("payment_handling_service", payment_system, "")
+Rel(streaming_api, s3, "[http]")
+Rel(streaming_api, online_cinema, "[http, Протоколы стриммингового видео]")
+Rel(video_management_service, s3, "[http]")
+Rel(video_management_service, online_cinema, "[http]")
+Rel(metadata_management_service, s3, "[http]")
+Rel(metadata_management_service, online_cinema, "[http]")
+Rel("payment_handling_service", payment_system, "http")
 
 @enduml
 
+- Домен: Онлайн кинотеатр
+  - Поддомен: Пользователи
+    - Контекст: Аутентификация и авторизация
+    - Контекст: Управление профилями пользователей
+  - Поддомен: Контент
+    - Контекст: Управление видео-файлами
+    - Контекст: Управление метаданными
+
+  - Поддомен: Платежи
+    - Контекст: Рассчет скидок
+    - Контекст: Обработка платежей
+
+  - Поддомен: Подписки
+    - Контекст: Управление подписками
