@@ -35,8 +35,12 @@
 ## Задание 3
 
 ### CI/CD
+- **api-tests.yml** выполняются автоматически после push в ветках main и cinema. Также он может быть запущен в ручном режиме
+в обеих ветках
+- **docker-build-push.yml** выполняется автоматически после push только в ветке main. Но может быть запущен в ручном режиме 
+- в ветках main и cinema
 
-Cборка успешно прошла, все тесты выполнены успешно.<br/> 
+Cборка прошла без ошибок, все тесты выполнены успешно.<br/> 
 В github registry **ghcr.io/zergnk** появились образы:
 - architecture-pro-cinemaabyss/proxy-service
 - architecture-pro-cinemaabyss/monolith
