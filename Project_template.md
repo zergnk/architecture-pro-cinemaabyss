@@ -19,13 +19,16 @@
 ## Задание 2
 
 ### 1. Proxy
+Реализация сервиса proxy-service
 - Код находится в каталоге ./src/microservices/proxy.
 - Сервис реализован на языке Java при помощи Spring boot.
 
 ### 2. Kafka
+Реализация сервиса events-service
 - Код находится в каталоге ./src/microservices/events.
 - Сервис реализован на языке Go.
 
+Скриншоты логов и выполненных тестов:
 - [Выполненные тесты](screenshots/ex_2/tests.PNG)
 - [Топик: movie-events](screenshots/ex_2/movie-events.PNG)
 - [Топик: user-events](screenshots/ex_2/user-events.PNG)
