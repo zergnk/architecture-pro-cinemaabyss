@@ -15,9 +15,9 @@ data:
 
   # Service URLs
   MONOLITH_URL: "http://monolith:{{ .Values.monolith.service.port }}"
-  MOVIES_SERVICE_URL: "http://movies:{{ .Values.moviesService.service.port }}"
-  EVENTS_SERVICE_URL: "http://movies:{{ .Values.eventsService.service.port }}"
-  PROXY_SERVICE_URL: "http://movies:{{ .Values.proxyService.service.port }}"  
+  MOVIES_SERVICE_URL: "http://movies-service:{{ .Values.moviesService.service.port }}"
+  EVENTS_SERVICE_URL: "http://event-services:{{ .Values.eventsService.service.port }}"
+  PROXY_SERVICE_URL: "http://proxy-service:{{ .Values.proxyService.service.port }}"  
 
   # Kafka url
   KAFKA_URL: "http://kafka:9092"
